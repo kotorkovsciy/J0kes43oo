@@ -1,0 +1,5 @@
+*.db
+*.pyc
+__pycache__
+bot_run.bat
+venv
