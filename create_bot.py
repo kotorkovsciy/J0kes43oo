@@ -3,10 +3,14 @@ from aiogram import Bot
 from aiogram.dispatcher import Dispatcher
 import logging
 from scripts.sql_data import Database
-from config import TOKEN
+import os
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 sql = Database('joke.db')
 
-bot = Bot(token=TOKEN)
+bot = Bot(token=os.getenv('TOKEN'))
 dp = Dispatcher(bot, storage=MemoryStorage())
 logging.basicConfig(level=logging.INFO)
