@@ -53,7 +53,7 @@ async def joke_step(message: types.Message, state: FSMContext):
         await message.answer(f'Превышен лимит шуток {quantity}/10', reply_markup=kb_client)
 
 async def author_step(message: types.Message, state: FSMContext):
-    await state.update_data(joke=message.text.lower()) 
+    await state.update_data(joke=message.text) 
     await message.answer(text='Введите автора')
     await record.author.set()
 
@@ -62,7 +62,7 @@ async def cmd_cancel(message: types.Message, state: FSMContext):
     await message.answer("Действие отменено", reply_markup=kb_client)
 
 async def res_step(message: types.Message, state: FSMContext):
-    await state.update_data(author=message.text.title())
+    await state.update_data(author=message.text)
     user_data = await state.get_data()
     await sql.record(user_data['joke'], user_data['author'], message.from_user.id)
     await message.answer(f"Записано {quantity+1}/10", reply_markup=kb_client)
