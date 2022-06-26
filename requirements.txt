@@ -1,4 +1,4 @@
-aiogram==2.20
-beautifulsoup4
-requests
+aiogram
+pyjokes
+googletrans==3.1.0a0
 python-dotenv
