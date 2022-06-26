@@ -1,13 +1,9 @@
-import bs4
-import requests
+import pyjokes
+from googletrans import Translator 
 
 
 def getanekdot():
-    z=''
-    s=requests.get('http://anekdotme.ru/random')
-    b=bs4.BeautifulSoup(s.text, "html.parser")
-    p=b.select('.anekdot_text')
-    for x in p:        
-        s=(x.getText().strip())
-        z=z+s+'\n\n'
-    return s
+    translator = Translator()
+    joke = pyjokes.get_joke()
+    result = translator.translate(str(joke), dest='ru')
+    return result.text
