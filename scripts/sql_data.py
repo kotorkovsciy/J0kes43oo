@@ -6,19 +6,19 @@ class Database:
         self.connection = sql.connect(db_file, check_same_thread=False)
         self.cursor = self.connection.cursor()
         self.connection.execute("""CREATE TABLE IF NOT EXISTS joker (
-                                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                user_id INTEGER,
                                 joke TEXT,
-                                author TEXT,
-                                user_id TEXT
+                                author TEXT
                             )""")
         self.connection.execute("""CREATE TABLE IF NOT EXISTS users (
-                                user_id TEXT 
+                                user_id INTEGER 
                             )""")
 
     async def record(self, joke, author, user_id):
         with self.connection:
-            moreShows = [(joke, author, user_id)]
-            return self.cursor.executemany("INSERT INTO joker (joke,author,user_id) VALUES (?, ?, ?)", moreShows)
+            rowid = self.cursor.execute(f"SELECT rowid FROM users WHERE user_id = '%s'" % user_id).fetchmany(1)[0][0]
+            moreShows = [(rowid, joke, author)]
+            return self.cursor.executemany("INSERT INTO joker (user_id,joke,author) VALUES (?, ?, ?)", moreShows)
 
     async def send_u(self):
         with self.connection:
@@ -28,7 +28,7 @@ class Database:
 
     async def my_joke(self, user_id):
         with self.connection:
-            records = self.cursor.execute(f"SELECT joke FROM joker WHERE user_id = '%s'" % user_id).fetchall()
+            records = self.cursor.execute(f"SELECT joker.joke, joker.author FROM users, joker WHERE users.user_id = '%s'" % user_id).fetchall()
             msg = ''
         for row in records:
             msg += f'{row[0]}\n\n'
@@ -36,7 +36,8 @@ class Database:
 
     async def delet_jokes(self, user_id):
         with self.connection:
-            return self.cursor.execute(f"DELETE FROM joker WHERE user_id = '%s'" % user_id)
+            rowid = self.cursor.execute(f"SELECT rowid FROM users WHERE user_id = '%s'" % user_id).fetchmany(1)[0][0]
+            return self.cursor.execute(f"DELETE FROM joker WHERE user_id = '%s'" % rowid)
     
     async def quantityJokes(self):
         with self.connection:
@@ -63,6 +64,7 @@ class Database:
         with self.connection:
             return self.cursor.execute("DELETE FROM joker")
 
-    async def quantityJokesUser(self, id):
+    async def quantityJokesUser(self, user_id):
         with self.connection:
-            return self.cursor.execute("SELECT count() FROM joker WHERE user_id = ?", (id,))
+            rowid = self.cursor.execute(f"SELECT rowid FROM users WHERE user_id = '%s'" % user_id).fetchmany(1)[0][0]
+            return self.cursor.execute("SELECT count() FROM joker WHERE user_id = ?", (rowid,))
