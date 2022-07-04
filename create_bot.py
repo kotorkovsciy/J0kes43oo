@@ -1,16 +1,15 @@
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram import Bot
 from aiogram.dispatcher import Dispatcher
-import logging
-from scripts.sql_data import Database
-import os
-
+from logging import basicConfig, INFO
+from scripts import Database
+from os import getenv
 from dotenv import load_dotenv
 
 load_dotenv()
 
-sql = Database('joke.db')
+sql = Database('jokes.db')
 
-bot = Bot(token=os.getenv('TOKEN'))
+bot = Bot(token=getenv('TOKEN'))
 dp = Dispatcher(bot, storage=MemoryStorage())
-logging.basicConfig(level=logging.INFO)
+basicConfig(level=INFO)
