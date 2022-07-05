@@ -5,7 +5,7 @@ from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from create_bot import sql
 from keyboards import kb_client, kb_record
-from scripts import getanekdot
+from scripts import getAnekdot
 
 
 class record(StatesGroup):
@@ -20,7 +20,7 @@ async def cmd_start(message: types.Message):
     await message.answer("Что выбираете ?", reply_markup=kb_client)
 
 
-async def bot_joke(message: types.Message):
+async def random_bot_joke(message: types.Message):
     try:
         await message.reply(await sql.randomJoke())
     except:
@@ -29,7 +29,7 @@ async def bot_joke(message: types.Message):
 
 async def random_joke(message: types.Message):
     msg = await message.answer("Загружаю")
-    msg1 = await msg.edit_text(getanekdot())
+    await msg.edit_text(getAnekdot())
 
 
 async def my_joke(message: types.Message):
@@ -79,7 +79,7 @@ async def res_step(message: types.Message, state: FSMContext):
 
 def register_handlers_client(dp: Dispatcher):
     dp.register_message_handler(cmd_start, commands="start")
-    dp.register_message_handler(bot_joke, Text(
+    dp.register_message_handler(random_bot_joke, Text(
         equals="Шутку пользователей бота"))
     dp.register_message_handler(
         random_joke, lambda message: message.text == "Шутку рандомную из инета")

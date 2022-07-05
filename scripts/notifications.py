@@ -36,8 +36,8 @@ async def scheduled(self):
         if await quantityUp():
             while await quantityUsers() > id:
                 id += 1
-                user_id = await sql.infoId(id)
-                user_id = str(tuple(user_id))
-                user_id = sub(r"[^0-9]+", '', user_id)
-                user_id = int(user_id)
-                await bot.send_message(user_id, "Появилась новая шутка")
+                userId = await sql.infoId(id)
+                userId = str(tuple(userId))
+                userId = sub(r"[^0-9]+", '', userId)
+                userId = int(userId)
+                await bot.send_message(userId, "Появилась новая шутка")
