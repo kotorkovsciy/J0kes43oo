@@ -36,7 +36,7 @@ async def scheduled(self):
         if await quantityUp():
             while await quantityUsers() > id:
                 id += 1
-                user_id = await sql.info_id(id)
+                user_id = await sql.infoId(id)
                 user_id = str(tuple(user_id))
                 user_id = sub(r"[^0-9]+", '', user_id)
                 user_id = int(user_id)

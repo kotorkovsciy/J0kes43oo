@@ -15,14 +15,14 @@ class record(StatesGroup):
 
 async def cmd_start(message: types.Message):
     if message.chat.type == 'private':
-        if not await sql.user_exists(message.from_user.id):
-            await sql.add_user(message.from_user.id)
+        if not await sql.userExists(message.from_user.id):
+            await sql.userAdd(message.from_user.id)
     await message.answer("Что выбираете ?", reply_markup=kb_client)
 
 
 async def bot_joke(message: types.Message):
     try:
-        await message.reply(await sql.send_u())
+        await message.reply(await sql.randomJoke())
     except:
         await message.reply('Шуток нету')
 
@@ -34,13 +34,13 @@ async def random_joke(message: types.Message):
 
 async def my_joke(message: types.Message):
     try:
-        await message.answer(await sql.my_joke(message.from_user.id))
+        await message.answer(await sql.myJoke(message.from_user.id))
     except:
         await message.answer("Нету ваших шуток")
 
 
 async def delet_joke(message: types.Message):
-    await sql.delet_jokes(message.from_user.id)
+    await sql.deleteJokesUser(message.from_user.id)
     await message.answer("Шутки удалены")
 
 
@@ -72,7 +72,7 @@ async def cmd_cancel(message: types.Message, state: FSMContext):
 async def res_step(message: types.Message, state: FSMContext):
     await state.update_data(author=message.text)
     user_data = await state.get_data()
-    await sql.record(user_data['joke'], user_data['author'], message.from_user.id)
+    await sql.recordJoke(user_data['joke'], user_data['author'], message.from_user.id)
     await message.answer(f"Записано {quantity+1}/10", reply_markup=kb_client)
     await state.finish()
 

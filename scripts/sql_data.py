@@ -14,21 +14,23 @@ class Database:
                                 user_id INTEGER 
                             )""")
 
-    async def record(self, joke, author, user_id):
+    async def recordJoke(self, joke, author, user_id):
+        """Запись шутки"""
         with self.connection:
-            rowid = self.cursor.execute(
-                f"SELECT rowid FROM users WHERE user_id = '%s'" % user_id).fetchmany(1)[0][0]
+            rowid = await self.rowid(user_id)
             moreShows = [(rowid, joke, author)]
             return self.cursor.executemany("INSERT INTO joker (user_id,joke,author) VALUES (?, ?, ?)", moreShows)
 
-    async def send_u(self):
+    async def randomJoke(self):
+        """Отправка рандомной шутки от пользователей бота"""
         with self.connection:
             records = self.cursor.execute(
                 "SELECT joke, author FROM joker ORDER BY RANDOM() LIMIT 1").fetchall()
         for row in records:
             return f'{row[0]} Автор: {row[1]}'
 
-    async def my_joke(self, user_id):
+    async def myJoke(self, user_id):
+        """Просмотр своих шуток"""
         with self.connection:
             records = self.cursor.execute(
                 f"SELECT joker.joke, joker.author FROM users, joker WHERE users.user_id = '%s'" % user_id).fetchall()
@@ -37,40 +39,51 @@ class Database:
             msg += f'{row[0]}\n\n'
         return msg
 
-    async def delet_jokes(self, user_id):
-        with self.connection:
-            rowid = self.cursor.execute(
-                f"SELECT rowid FROM users WHERE user_id = '%s'" % user_id).fetchmany(1)[0][0]
-            return self.cursor.execute(f"DELETE FROM joker WHERE user_id = '%s'" % rowid)
-
     async def quantityJokes(self):
+        """Количество всех шуток"""
         with self.connection:
             return self.cursor.execute("SELECT count(*) FROM joker").fetchall()
 
     async def quantityUsers(self):
+        """Количество пользователей"""
         with self.connection:
             return self.cursor.execute("SELECT count(*) FROM users").fetchall()
 
-    async def user_exists(self, user_id):
+    async def quantityJokesUser(self, user_id):
+        """Количество шуток у пользователя"""
+        with self.connection:
+            rowid = await self.rowid(user_id)
+            return self.cursor.execute("SELECT count() FROM joker WHERE user_id = ?", (rowid,))
+
+    async def userExists(self, user_id):
+        """Проверка пользовотеля"""
         with self.connection:
             result = self.cursor.execute(
                 "SELECT * FROM users WHERE user_id = ?", (user_id,)).fetchmany(1)
             return bool(len(result))
 
-    async def add_user(self, user_id):
+    async def userAdd(self, user_id):
+        """Добавление пользователя"""
         with self.connection:
             return self.cursor.execute("INSERT INTO users (user_id) VALUES (?)", (user_id,))
 
-    async def info_id(self, id):
+    async def infoId(self, id):
+        """Просмотр пользователя"""
         with self.connection:
             return self.cursor.execute("SELECT * FROM users WHERE ROWID = ?", (id,))
 
-    async def delete_jokes(self):
+    async def rowid(self, user_id):
+        """Поиск пользователя"""
+        return self.cursor.execute(
+            f"SELECT rowid FROM users WHERE user_id = '%s'" % user_id).fetchmany(1)[0][0]
+
+    async def deleteJokes(self):
+        """Удаление всех шуток"""
         with self.connection:
             return self.cursor.execute("DELETE FROM joker")
 
-    async def quantityJokesUser(self, user_id):
+    async def deleteJokesUser(self, user_id):
+        """Удаление своих шуток"""
         with self.connection:
-            rowid = self.cursor.execute(
-                f"SELECT rowid FROM users WHERE user_id = '%s'" % user_id).fetchmany(1)[0][0]
-            return self.cursor.execute("SELECT count() FROM joker WHERE user_id = ?", (rowid,))
+            rowid = await self.rowid(user_id)
+            return self.cursor.execute(f"DELETE FROM joker WHERE user_id = '%s'" % rowid)

@@ -3,7 +3,7 @@ from create_bot import sql
 
 
 async def clearc(message: types.Message):
-    await sql.delete_jokes()
+    await sql.deleteJokes()
     await message.answer('Была произведена очистка')
 
 
