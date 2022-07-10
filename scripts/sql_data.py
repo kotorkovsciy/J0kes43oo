@@ -32,8 +32,9 @@ class Database:
     async def myJoke(self, user_id):
         """Просмотр своих шуток"""
         with self.connection:
+            rowid = await self.rowid(user_id)
             records = self.cursor.execute(
-                f"SELECT joker.joke, joker.author FROM users, joker WHERE users.user_id = '%s'" % user_id).fetchall()
+                f"SELECT joke, author FROM joker WHERE user_id = '%s'" % rowid).fetchall()
             msg = ''
         for row in records:
             msg += f'{row[0]}\n\n'
