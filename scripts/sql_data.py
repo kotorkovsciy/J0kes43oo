@@ -39,15 +39,23 @@ class Database:
             msg += f'{row[0]}\n\n'
         return msg
 
+    async def newsJoke(self):
+        """Вывод последней шутки"""
+        with self.connection:
+            records = self.cursor.execute(
+                "SELECT * FROM joker ORDER BY ROWID DESC LIMIT 1")
+        for row in records:
+            return row
+
     async def quantityJokes(self):
         """Количество всех шуток"""
         with self.connection:
-            return self.cursor.execute("SELECT count(*) FROM joker").fetchall()
+            return self.cursor.execute("SELECT count(*) FROM joker").fetchmany(1)[0][0]
 
     async def quantityUsers(self):
         """Количество пользователей"""
         with self.connection:
-            return self.cursor.execute("SELECT count(*) FROM users").fetchall()
+            return self.cursor.execute("SELECT count(*) FROM users").fetchmany(1)[0][0]
 
     async def quantityJokesUser(self, user_id):
         """Количество шуток у пользователя"""
@@ -70,7 +78,7 @@ class Database:
     async def infoId(self, id):
         """Просмотр пользователя"""
         with self.connection:
-            return self.cursor.execute("SELECT * FROM users WHERE ROWID = ?", (id,))
+            return self.cursor.execute("SELECT * FROM users WHERE ROWID = ?", (id,)).fetchmany(1)[0][0]
 
     async def rowid(self, user_id):
         """Поиск пользователя"""
