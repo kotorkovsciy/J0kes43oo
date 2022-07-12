@@ -29,7 +29,7 @@ async def random_bot_joke(message: types.Message):
 
 async def random_joke(message: types.Message):
     msg = await message.answer("Загружаю")
-    await msg.edit_text(getAnekdot())
+    await msg.edit_text(await getAnekdot())
 
 
 async def my_joke(message: types.Message):
