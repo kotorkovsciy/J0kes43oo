@@ -1,4 +1,13 @@
 ![](https://raw.githubusercontent.com/kotorkovsciy/J0kes43oo/master/.github/images/J0kes43oo.png)
+<div align="center">
+<a href="https://www.oscs1024.com/project/oscs/kotorkovsciy/J0kes43oo?ref=badge_small" alt="OSCS Status"><img src="https://www.oscs1024.com/platform/badge/kotorkovsciy/J0kes43oo.svg?size=small"/></a>
+<a href="https://github.com/kotorkovsciy/J0kes43oo/blob/master/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/kotorkovsciy/J0kes43oo"></a>
+<img alt="GitHub contributors" src="https://img.shields.io/github/contributors/kotorkovsciy/J0kes43oo?color=gr">
+<img alt="GitHub Release Date" src="https://img.shields.io/github/release-date/kotorkovsciy/J0kes43oo">
+<img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/kotorkovsciy/J0kes43oo">
+<img alt="GitHub code size in bytes" src="https://img.shields.io/github/languages/code-size/kotorkovsciy/J0kes43oo">
+</div>
+
 
 # J0kes43oo
 
