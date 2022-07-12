@@ -13,6 +13,9 @@ class Database:
         self.connection.execute("""CREATE TABLE IF NOT EXISTS users (
                                 user_id INTEGER 
                             )""")
+        self.connection.execute("""CREATE TABLE IF NOT EXISTS quantity (
+                                quantity INTEGER NOT NULL DEFAULT 0
+                            )""")
 
     async def recordJoke(self, joke, author, user_id):
         """Запись шутки"""
@@ -64,6 +67,26 @@ class Database:
             rowid = await self.rowid(user_id)
             return self.cursor.execute("SELECT count() FROM joker WHERE user_id = ?", (rowid,))
 
+    async def recordQuantityJokes(self):
+        with self.connection:
+            quantity = await self.quantityJokes()
+            if not await self.jokesExists():
+                return self.cursor.execute("INSERT INTO quantity (quantity) VALUES (?)", (quantity,))
+            else:
+                return self.cursor.execute("Update quantity set quantity = ?", (quantity,))
+
+    async def oldQuantityJokes(self):
+        with self.connection:
+            if not await self.jokesExists():
+                await self.recordQuantityJokes()
+            return self.cursor.execute("SELECT quantity FROM quantity").fetchmany(1)[0][0]
+
+    async def jokesExists(self):
+        with self.connection:
+            result = self.cursor.execute(
+                "SELECT count(quantity) FROM quantity").fetchmany(1)[0][0]
+            return bool(result)           
+
     async def userExists(self, user_id):
         """Проверка пользовотеля"""
         with self.connection:
@@ -83,8 +106,11 @@ class Database:
 
     async def rowid(self, user_id):
         """Поиск пользователя"""
-        return self.cursor.execute(
-            f"SELECT rowid FROM users WHERE user_id = '%s'" % user_id).fetchmany(1)[0][0]
+        with self.connection:
+            if not await self.userExists(user_id):
+                await self.userAdd(user_id)
+            return self.cursor.execute(
+                f"SELECT rowid FROM users WHERE user_id = '%s'" % user_id).fetchmany(1)[0][0]
 
     async def deleteJokes(self):
         """Удаление всех шуток"""
