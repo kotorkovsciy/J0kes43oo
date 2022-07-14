@@ -68,6 +68,7 @@ class Database:
             return self.cursor.execute("SELECT count() FROM joker WHERE user_id = ?", (rowid,))
 
     async def recordQuantityJokes(self):
+        """Запись количества шуток"""
         with self.connection:
             quantity = await self.quantityJokes()
             if not await self.jokesExists():
@@ -76,12 +77,14 @@ class Database:
                 return self.cursor.execute("Update quantity set quantity = ?", (quantity,))
 
     async def oldQuantityJokes(self):
+        """Вывод страрого количества шуток"""
         with self.connection:
             if not await self.jokesExists():
                 await self.recordQuantityJokes()
             return self.cursor.execute("SELECT quantity FROM quantity").fetchmany(1)[0][0]
 
     async def jokesExists(self):
+        """Проверка шуток"""
         with self.connection:
             result = self.cursor.execute(
                 "SELECT count(quantity) FROM quantity").fetchmany(1)[0][0]
