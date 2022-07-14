@@ -3,7 +3,7 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from create_bot import sql
+from create_bot import sql, Anekdot
 from keyboards import kb_client, kb_record
 from scripts import getAnekdot
 
@@ -29,7 +29,7 @@ async def random_bot_joke(message: types.Message):
 
 async def random_joke(message: types.Message):
     msg = await message.answer("Загружаю")
-    await msg.edit_text(await getAnekdot())
+    await msg.edit_text(await Anekdot.getAnekdot())
 
 
 async def my_joke(message: types.Message):

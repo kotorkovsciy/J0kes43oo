@@ -5,25 +5,26 @@ from requests import get
 from bs4 import BeautifulSoup
 
 
-async def getAnekdot():
-    fuck = randint(1, 2)
-    match fuck:
-        case 1:
-            return await Anekdot1()
-        case 2:
-            return await Anekdot2()
+class getAnekdot:
+    def __init__(self):
+        pass
 
+    async def getAnekdot(self):
+        match randint(1, 2):
+            case 1:
+                return await self.Anekdot1()
+            case 2:
+                return await self.Anekdot2()
 
-async def Anekdot1():
-    translator = Translator()
-    joke = get_joke()
-    result = translator.translate(str(joke), dest='ru')
-    return result.text
+    async def Anekdot1(self):
+        translator = Translator()
+        joke = get_joke()
+        result = translator.translate(str(joke), dest='ru')
+        return result.text
 
-
-async def Anekdot2():
-    url = 'http://anecdotica.ru/'
-    response = get(url)
-    soup = BeautifulSoup(response.text, 'lxml')
-    result = soup.find_all('div', class_='item_text')[0]
-    return result.text
+    async def Anekdot2(self):
+        url = 'http://anecdotica.ru/'
+        response = get(url)
+        soup = BeautifulSoup(response.text, 'lxml')
+        result = soup.find_all('div', class_='item_text')[0]
+        return result.text
