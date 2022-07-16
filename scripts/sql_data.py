@@ -1,9 +1,10 @@
-from sqlite3 import connect
+from sqlite3 import connect, Row
 
 
 class Database:
     def __init__(self, db_file):
         self.connection = connect(db_file, check_same_thread=False)
+        self.connection.row_factory = Row
         self.cursor = self.connection.cursor()
         self.connection.execute("""CREATE TABLE IF NOT EXISTS jokes (
                                 user_id INTEGER,
@@ -37,8 +38,7 @@ class Database:
         if not bool(len(records)):
             return "Нету шуток 😞, но ты можешь записать свою шутку 😉"
         for row in records:
-            return f'{row[0]} Автор: {row[1]}'
-        
+            return f'{row["joke"]} Автор: {row["author"]}'
 
     async def myJoke(self, user_id):
         """Просмотр своих шуток"""
@@ -50,7 +50,7 @@ class Database:
         if not bool(len(records)):
             return "Нету шуток 😞, но ты можешь записать свою шутку 😉"
         for row in records:
-            msg += f'{row[0]}\n\n'
+            msg += f'{row["joke"]}\n\n'
         return msg
 
     async def newsJoke(self):
@@ -71,7 +71,7 @@ class Database:
         """Проверка шуток"""
         with self.connection:
             result = self.cursor.execute(
-                "SELECT count(*) FROM newJokes").fetchone()[0]
+                "SELECT count(*) FROM newJokes").fetchone()["count(*)"]
             if result < 1:
                 return False
             return True
@@ -79,13 +79,13 @@ class Database:
     async def quantityUsers(self):
         """Количество пользователей"""
         with self.connection:
-            return self.cursor.execute("SELECT count(*) FROM users").fetchone()[0]
+            return self.cursor.execute("SELECT count(*) FROM users").fetchone()["count(*)"]
 
     async def quantityJokesUser(self, user_id):
         """Количество шуток у пользователя"""
         with self.connection:
             rowid = await self.rowid(user_id)
-            return self.cursor.execute("SELECT count(*) FROM jokes WHERE user_id = ?", (rowid,)).fetchone()[0]
+            return self.cursor.execute("SELECT count(*) FROM jokes WHERE user_id = ?", (rowid,)).fetchone()["count(*)"]
 
     async def userExists(self, user_id):
         """Проверка пользовотеля"""
@@ -103,7 +103,7 @@ class Database:
     async def infoId(self, id):
         """Просмотр пользователя"""
         with self.connection:
-            return self.cursor.execute("SELECT * FROM users WHERE ROWID = ?", (id,)).fetchone()[0]
+            return self.cursor.execute("SELECT * FROM users WHERE ROWID = ?", (id,)).fetchone()["user_id"]
 
     async def rowid(self, user_id):
         """Поиск пользователя"""
@@ -111,13 +111,14 @@ class Database:
             if not await self.userExists(user_id):
                 await self.userAdd(user_id)
             return self.cursor.execute(
-                f"SELECT rowid FROM users WHERE user_id = '%s'" % user_id).fetchone()[0]
+                f"SELECT rowid FROM users WHERE user_id = '%s'" % user_id).fetchone()["rowid"]
 
     async def deleteJokes(self):
         """Удаление всех шуток"""
         with self.connection:
-            self.cursor.execute("DELETE FROM jokes")
-            self.cursor.execute("DELETE FROM newJokes")
+            self.cursor.executescript("""DELETE FROM jokes;
+                                        DELETE FROM newJokes                           
+                                    """)
 
     async def deleteJokesUser(self, user_id):
         """Удаление своих шуток"""
