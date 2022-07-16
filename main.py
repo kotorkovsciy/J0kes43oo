@@ -3,13 +3,12 @@ from logging import info
 
 from aiogram.utils.executor import start_polling
 
-from create_bot import dp, sql
+from create_bot import dp
 from handlers import admin, client
 from scripts.notifications import scheduled
 
 
 async def on_startup(_):
-    await sql.recordQuantityJokes()
     info("Бот вышел в онлайн")
 
 client.register_handlers_client(dp)
