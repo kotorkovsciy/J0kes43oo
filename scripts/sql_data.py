@@ -33,9 +33,12 @@ class Database:
         """Отправка рандомной шутки от пользователей бота"""
         with self.connection:
             records = self.cursor.execute(
-                "SELECT joke, author FROM jokes ORDER BY RANDOM() LIMIT 1").fetchall()
+                "SELECT joke, author FROM jokes ORDER BY RANDOM() LIMIT 1").fetchmany(1)
+        if not bool(len(records)):
+            return "Нету шуток 😞, но ты можешь записать свою шутку 😉"
         for row in records:
             return f'{row[0]} Автор: {row[1]}'
+        
 
     async def myJoke(self, user_id):
         """Просмотр своих шуток"""
@@ -44,6 +47,8 @@ class Database:
             records = self.cursor.execute(
                 f"SELECT joke, author FROM jokes WHERE user_id = '%s'" % rowid).fetchall()
             msg = ''
+        if not bool(len(records)):
+            return "Нету шуток 😞, но ты можешь записать свою шутку 😉"
         for row in records:
             msg += f'{row[0]}\n\n'
         return msg
@@ -80,7 +85,7 @@ class Database:
         """Количество шуток у пользователя"""
         with self.connection:
             rowid = await self.rowid(user_id)
-            return self.cursor.execute("SELECT count(*) FROM jokes WHERE user_id = ?", (rowid,))
+            return self.cursor.execute("SELECT count(*) FROM jokes WHERE user_id = ?", (rowid,)).fetchone()[0]
 
     async def userExists(self, user_id):
         """Проверка пользовотеля"""
@@ -112,7 +117,7 @@ class Database:
         """Удаление всех шуток"""
         with self.connection:
             self.cursor.execute("DELETE FROM jokes")
-            self.cursor.execute("DELETE FROM jokes")
+            self.cursor.execute("DELETE FROM newJokes")
 
     async def deleteJokesUser(self, user_id):
         """Удаление своих шуток"""
