@@ -5,3 +5,4 @@ bot_run.bat
 venv
 .env
 source
+*.sql

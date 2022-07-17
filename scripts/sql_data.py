@@ -126,3 +126,10 @@ class Database:
             rowid = await self.rowid(user_id)
             self.cursor.execute(
                 f"DELETE FROM jokes WHERE user_id = '%s'" % rowid)
+
+    async def dump(self, user_id):
+        """Дамп бд"""
+        with self.connection:
+            with open(f"{user_id}.sql", "w", encoding='utf 8') as file:
+                for sql in self.connection.iterdump():
+                    file.write(sql)
