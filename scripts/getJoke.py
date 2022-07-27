@@ -1,12 +1,14 @@
 from pyjokes import get_joke
 from googletrans import Translator
 from random import randint
-from requests import get
 from bs4 import BeautifulSoup
+from asyncinit import asyncinit
+from aiohttp import ClientSession
 
 
+@asyncinit
 class getAnekdot:
-    def __init__(self):
+    async def __init__(self):
         pass
 
     async def getAnekdot(self):
@@ -23,8 +25,9 @@ class getAnekdot:
         return result.text
 
     async def Anekdot2(self):
-        url = 'http://anecdotica.ru/'
-        response = get(url)
-        soup = BeautifulSoup(response.text, 'lxml')
-        result = soup.find_all('div', class_='item_text')[0]
-        return result.text
+        async with ClientSession() as session:
+            async with session.get('http://anecdotica.ru/') as response:
+                html = await response.text()
+                soup = BeautifulSoup(html, 'lxml')
+                result = soup.find_all('div', class_='item_text')[0]
+                return result.text
