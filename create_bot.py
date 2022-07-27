@@ -3,13 +3,14 @@ from aiogram import Bot
 from aiogram.dispatcher import Dispatcher
 from logging import basicConfig, INFO
 from scripts import Database, getAnekdot
+from asyncio import run
 from os import getenv
 from dotenv import load_dotenv
 
 load_dotenv()
 
-sql = Database('jokes.db')
-Anekdot = getAnekdot()
+sql = run(Database('jokes.db'))
+Anekdot = run(getAnekdot())
 
 bot = Bot(token=getenv('TOKEN'))
 dp = Dispatcher(bot, storage=MemoryStorage())
