@@ -6,13 +6,13 @@ from create_bot import sql, Anekdot
 from keyboards import kb_client, kb_record, kb_aon
 
 
-class record(StatesGroup):
+class ClientRecord(StatesGroup):
     quantity = State()
     joke = State()
     author = State()
 
 
-class delete(StatesGroup):
+class ClientDelete(StatesGroup):
     user_id = State()
     aon = State()
 
@@ -38,35 +38,26 @@ async def my_joke(message: types.Message):
 
 
 async def delet_step(message: types.Message, state: FSMContext):
-    await delete.user_id.set()
+    await ClientDelete.user_id.set()
     await state.update_data(user_id=message.from_user.id)
     await message.answer("Вы уверены ?", reply_markup=kb_aon)
-    await delete.aon.set()
+    await ClientDelete.aon.set()
 
 
 async def delete_res(message: types.Message, state: FSMContext):
-    await state.update_data(aon=message.text.lower())
     user_data = await state.get_data()
-    match user_data["aon"]:
-        case "да":
-            await sql.deleteJokesUser(user_data["user_id"])
-            await state.finish()
-            await message.answer("🗑 Шутки удалены 🗑", reply_markup=kb_client)
-        case "нет":
-            await state.finish()
-            await message.answer("Действие отменено", reply_markup=kb_client)
-        case _:
-            await message.answer("Да или Нет", reply_markup=kb_aon)
-            return
+    await sql.deleteJokesUser(user_data["user_id"])
+    await state.finish()
+    await message.answer("🗑 Шутки удалены 🗑", reply_markup=kb_client)
 
 
 async def joke_step(message: types.Message, state: FSMContext):
-    await record.quantity.set()
+    await ClientRecord.quantity.set()
     quantity = await sql.quantityJokesUser(message.from_user.id)
     await state.update_data(quantity=quantity)
     if quantity < 10:
-        await message.answer(text='Напиши шутку', reply_markup=kb_record)
-        await record.joke.set()
+        await message.answer('Напиши шутку', reply_markup=kb_record)
+        await ClientRecord.joke.set()
     else:
         await state.finish()
         await message.answer(f'Превышен лимит шуток {quantity}/10', reply_markup=kb_client)
@@ -74,13 +65,8 @@ async def joke_step(message: types.Message, state: FSMContext):
 
 async def author_step(message: types.Message, state: FSMContext):
     await state.update_data(joke=message.text)
-    await message.answer(text='Введите автора')
-    await record.author.set()
-
-
-async def cmd_cancel(message: types.Message, state: FSMContext):
-    await state.finish()
-    await message.answer("Действие отменено", reply_markup=kb_client)
+    await message.answer('Введите автора', reply_markup=kb_record)
+    await ClientRecord.author.set()
 
 
 async def res_step(message: types.Message, state: FSMContext):
@@ -102,14 +88,11 @@ def register_handlers_client(dp: Dispatcher):
     dp.register_message_handler(my_joke, Text(equals="Мои шутки"))
     dp.register_message_handler(delet_step, Text(
         equals="Удалить мои Шутки"), state="*")
-    dp.register_message_handler(
-        delete_res, state=delete.aon, content_types=types.ContentTypes.TEXT)
+    dp.register_message_handler(delete_res, Text(
+        equals='Подтверждаю'), state=ClientDelete.aon)
     dp.register_message_handler(joke_step, Text(
         equals="Записать шутку"), state="*")
-    dp.register_message_handler(cmd_cancel, commands="cancel", state="*")
-    dp.register_message_handler(cmd_cancel, Text(
-        equals="отмена", ignore_case=True), state="*")
     dp.register_message_handler(
-        author_step, state=record.joke, content_types=types.ContentTypes.TEXT)
+        author_step, state=ClientRecord.joke, content_types=types.ContentTypes.TEXT)
     dp.register_message_handler(
-        res_step, state=record.author, content_types=types.ContentTypes.TEXT)
+        res_step, state=ClientRecord.author, content_types=types.ContentTypes.TEXT)
