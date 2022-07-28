@@ -1,2 +1,2 @@
 from scripts.getJoke import getAnekdot
-from scripts.sql_data import Database
+from scripts.sql_data import Database, AdminDatabase
