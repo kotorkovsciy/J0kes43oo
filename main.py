@@ -4,13 +4,14 @@ from logging import info
 from aiogram.utils.executor import start_polling
 
 from create_bot import dp
-from handlers import admin, client
+from handlers import admin, client, other
 from scripts.notifications import scheduled
 
 
 async def on_startup(_):
     info("Бот вышел в онлайн")
 
+other.register_handlers_client(dp)
 client.register_handlers_client(dp)
 admin.register_handlers_admin(dp)
 
