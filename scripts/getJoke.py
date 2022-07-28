@@ -12,11 +12,7 @@ class getAnekdot:
         pass
 
     async def getAnekdot(self):
-        match randint(1, 2):
-            case 1:
-                return await self.Anekdot1()
-            case 2:
-                return await self.Anekdot2()
+        return await eval(f"self.Anekdot{randint(1, 2)}")()
 
     async def Anekdot1(self):
         translator = Translator()
@@ -25,8 +21,8 @@ class getAnekdot:
         return result.text
 
     async def Anekdot2(self):
-        async with ClientSession() as session:
-            async with session.get('http://anecdotica.ru/') as response:
+        async with ClientSession(trust_env=True) as session:
+            async with session.get('http://anecdotica.ru/', ssl=False) as response:
                 html = await response.text()
                 soup = BeautifulSoup(html, 'lxml')
                 result = soup.find_all('div', class_='item_text')[0]
