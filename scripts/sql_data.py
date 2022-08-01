@@ -7,18 +7,47 @@ class Database:
     async def __init__(self, db_file):
         self.db_file = db_file
         async with connect(self.db_file) as db:
+            await db.execute("""CREATE TABLE IF NOT EXISTS users (
+                                user_id INTEGER
+                            )""")
+
+    async def userExists(self, user_id):
+        """Проверка пользовотеля"""
+        async with connect(self.db_file) as db:
+            db.row_factory = Row
+            async with db.execute(
+                    "SELECT * FROM users WHERE user_id = ?", (user_id,)) as cursor:
+                async for row in cursor:
+                    return bool(len(row))
+
+    async def userAdd(self, user_id):
+        """Добавление пользователя"""
+        async with connect(self.db_file) as db:
+            await db.execute(
+                "INSERT INTO users (user_id) VALUES (?)", (user_id,))
+            await db.commit()
+
+    async def rowid(self, user_id):
+        """Поиск пользователя"""
+        async with connect(self.db_file) as db:
+            db.row_factory = Row
+            if not await self.userExists(user_id):
+                await self.userAdd(user_id)
+            async with db.execute(
+                    f"SELECT rowid FROM users WHERE user_id = '%s'" % user_id) as cursor:
+                async for row in cursor:
+                    return row["rowid"]
+
+
+@asyncinit
+class JokesDatabase(Database):
+    async def __init__(self, db_file):
+        await super(JokesDatabase, self).__init__(db_file)
+        async with connect(self.db_file) as db:
             await db.execute("""CREATE TABLE IF NOT EXISTS jokes (
                                 user_id INTEGER,
                                 joke TEXT,
                                 author TEXT
-                            )""")
-            await db.execute("""CREATE TABLE IF NOT EXISTS newJokes (
-                                user_id INTEGER,
-                                joke TEXT,
-                                author TEXT
-                            )""")
-            await db.execute("""CREATE TABLE IF NOT EXISTS users (
-                                user_id INTEGER
                             )""")
 
     async def recordJoke(self, joke, author, user_id):
@@ -57,21 +86,34 @@ class Database:
             return "Нету шуток 😞, но ты можешь записать свою шутку 😉"
         return msg
 
-    async def newsJoke(self):
-        """Вывод последней шутки"""
+    async def quantityJokesUser(self, user_id):
+        """Количество шуток у пользователя"""
         async with connect(self.db_file) as db:
             db.row_factory = Row
-            async with db.execute(
-                    "SELECT * FROM newJokes LIMIT 1") as cursor:
+            rowid = await self.rowid(user_id)
+            async with db.execute("SELECT count(*) FROM jokes WHERE user_id = ?", (rowid,)) as cursor:
                 async for row in cursor:
-                    return row
+                    return row["count(*)"]
 
-    async def deleteOldJoke(self):
-        """Удаление старой шутки"""
+    async def deleteJokesUser(self, user_id):
+        """Удаление своих шуток"""
         async with connect(self.db_file) as db:
+            rowid = await self.rowid(user_id)
             await db.execute(
-                "DELETE FROM newJokes where ROWID = 1")
+                f"DELETE FROM jokes WHERE user_id = '%s'" % rowid)
             await db.commit()
+
+
+@asyncinit
+class NotificationsDatabase(Database):
+    async def __init__(self, db_file):
+        await super(NotificationsDatabase, self).__init__(db_file)
+        async with connect(self.db_file) as db:
+            await db.execute("""CREATE TABLE IF NOT EXISTS newJokes (
+                                user_id INTEGER,
+                                joke TEXT,
+                                author TEXT
+                            )""")
 
     async def newsJokesExists(self):
         """Проверка шуток"""
@@ -92,30 +134,14 @@ class Database:
                 async for row in cursor:
                     return row["count(*)"]
 
-    async def quantityJokesUser(self, user_id):
-        """Количество шуток у пользователя"""
-        async with connect(self.db_file) as db:
-            db.row_factory = Row
-            rowid = await self.rowid(user_id)
-            async with db.execute("SELECT count(*) FROM jokes WHERE user_id = ?", (rowid,)) as cursor:
-                async for row in cursor:
-                    return row["count(*)"]
-
-    async def userExists(self, user_id):
-        """Проверка пользовотеля"""
+    async def newsJoke(self):
+        """Вывод последней шутки"""
         async with connect(self.db_file) as db:
             db.row_factory = Row
             async with db.execute(
-                    "SELECT * FROM users WHERE user_id = ?", (user_id,)) as cursor:
+                    "SELECT * FROM newJokes LIMIT 1") as cursor:
                 async for row in cursor:
-                    return bool(len(row))
-
-    async def userAdd(self, user_id):
-        """Добавление пользователя"""
-        async with connect(self.db_file) as db:
-            await db.execute(
-                "INSERT INTO users (user_id) VALUES (?)", (user_id,))
-            await db.commit()
+                    return row
 
     async def infoId(self, id):
         """Просмотр пользователя"""
@@ -125,23 +151,11 @@ class Database:
                 async for row in cursor:
                     return row["user_id"]
 
-    async def rowid(self, user_id):
-        """Поиск пользователя"""
+    async def deleteOldJoke(self):
+        """Удаление старой шутки"""
         async with connect(self.db_file) as db:
-            db.row_factory = Row
-            if not await self.userExists(user_id):
-                await self.userAdd(user_id)
-            async with db.execute(
-                    f"SELECT rowid FROM users WHERE user_id = '%s'" % user_id) as cursor:
-                async for row in cursor:
-                    return row["rowid"]
-
-    async def deleteJokesUser(self, user_id):
-        """Удаление своих шуток"""
-        async with connect(self.db_file) as db:
-            rowid = await self.rowid(user_id)
             await db.execute(
-                f"DELETE FROM jokes WHERE user_id = '%s'" % rowid)
+                "DELETE FROM newJokes where ROWID = 1")
             await db.commit()
 
 
@@ -197,8 +211,8 @@ class AdminDatabase(Database):
             await db.commit()
 
     async def adminDel(self, user_id):
-         """Удаление админа"""
-         async with connect(self.db_file) as db:
+        """Удаление админа"""
+        async with connect(self.db_file) as db:
             await db.execute(
                 f"DELETE FROM admins WHERE user_id = '%s'" % user_id)
             await db.commit()

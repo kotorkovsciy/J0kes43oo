@@ -2,7 +2,7 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from create_bot import sql, Anekdot
+from create_bot import sql, Anekdot, jokes
 from keyboards import kb_client, kb_record, kb_aon
 
 
@@ -25,7 +25,7 @@ async def cmd_start(message: types.Message):
 
 
 async def random_bot_joke(message: types.Message):
-    await message.reply(await sql.randomJoke())
+    await message.reply(await jokes.randomJoke())
 
 
 async def random_joke(message: types.Message):
@@ -34,7 +34,7 @@ async def random_joke(message: types.Message):
 
 
 async def my_joke(message: types.Message):
-    await message.answer(await sql.myJoke(message.from_user.id))
+    await message.answer(await jokes.myJoke(message.from_user.id))
 
 
 async def delet_step(message: types.Message, state: FSMContext):
@@ -46,14 +46,14 @@ async def delet_step(message: types.Message, state: FSMContext):
 
 async def delete_res(message: types.Message, state: FSMContext):
     user_data = await state.get_data()
-    await sql.deleteJokesUser(user_data["user_id"])
+    await jokes.deleteJokesUser(user_data["user_id"])
     await state.finish()
     await message.answer("🗑 Шутки удалены 🗑", reply_markup=kb_client)
 
 
 async def joke_step(message: types.Message, state: FSMContext):
     await ClientRecord.quantity.set()
-    quantity = await sql.quantityJokesUser(message.from_user.id)
+    quantity = await jokes.quantityJokesUser(message.from_user.id)
     await state.update_data(quantity=quantity)
     if quantity < 10:
         await message.answer('Напиши шутку', reply_markup=kb_record)
@@ -72,7 +72,7 @@ async def author_step(message: types.Message, state: FSMContext):
 async def res_step(message: types.Message, state: FSMContext):
     await state.update_data(author=message.text)
     user_data = await state.get_data()
-    await sql.recordJoke(user_data['joke'], user_data['author'], message.from_user.id)
+    await jokes.recordJoke(user_data['joke'], user_data['author'], message.from_user.id)
     await message.answer(f"Записано {user_data['quantity']+1}/10", reply_markup=kb_client)
     await state.finish()
 
