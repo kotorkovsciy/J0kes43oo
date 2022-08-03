@@ -6,6 +6,7 @@
 <img alt="GitHub Release Date" src="https://img.shields.io/github/release-date/kotorkovsciy/J0kes43oo">
 <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/kotorkovsciy/J0kes43oo">
 <img alt="GitHub code size in bytes" src="https://img.shields.io/github/languages/code-size/kotorkovsciy/J0kes43oo">
+<img alt="GitHub Workflow Status" src="https://img.shields.io/github/workflow/status/kotorkovsciy/J0kes43oo/Test_Database?label=Test_Database">
 </div>
 
 
