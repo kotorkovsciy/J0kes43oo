@@ -2,13 +2,11 @@ from pyjokes import get_joke
 from googletrans import Translator
 from random import randint
 from bs4 import BeautifulSoup
-from asyncinit import asyncinit
 from aiohttp import ClientSession
 
 
-@asyncinit
 class getAnekdot:
-    async def __init__(self):
+    def __init__(self):
         pass
 
     async def getAnekdot(self):
