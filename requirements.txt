@@ -5,6 +5,5 @@ python-dotenv
 beautifulsoup4
 requests
 lxml
-asyncinit
-aiosqlite
+psycopg2
 aiohttp
