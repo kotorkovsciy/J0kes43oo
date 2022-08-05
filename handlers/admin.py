@@ -3,7 +3,7 @@ from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from create_bot import adm_sql
-from os import getenv, remove
+from os import getenv
 from keyboards import kb_admin, kb_aon, kb_record
 
 
@@ -105,16 +105,6 @@ async def res_del_admin(message: types.Message, state: FSMContext):
     await state.finish()
 
 
-async def sql_damp(message: types.Message):
-    if message.chat.type == 'private':
-        user_id = message.from_user.id
-        if int(getenv("ID_ADMIN")) == user_id or await adm_sql.adminExists(user_id):
-            await adm_sql.dump(user_id)
-            file = open(f"{user_id}.sql", 'rb')
-            await message.answer_document(file, caption="sql dump")
-            remove(f"{user_id}.sql")
-
-
 async def all_admins(message: types.Message):
     if message.chat.type == 'private':
         user_id = message.from_user.id
@@ -138,7 +128,5 @@ def register_handlers_admin(dp: Dispatcher):
         equals="Удалить админа"), state="*")
     dp.register_message_handler(
         res_del_admin, state=DelAdmin.user_id, content_types=types.ContentTypes.TEXT)
-    dp.register_message_handler(sql_damp, Text(
-        equals="Дамп бд"))
     dp.register_message_handler(all_admins, Text(
         equals="Список админов"))
