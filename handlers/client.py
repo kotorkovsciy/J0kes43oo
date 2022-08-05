@@ -19,8 +19,7 @@ class ClientDelete(StatesGroup):
 
 async def cmd_start(message: types.Message):
     if message.chat.type == 'private':
-        if not await sql.userExists(message.from_user.id):
-            await sql.userAdd(message.from_user.id)
+        await sql.userExists(message.from_user.id)
     await message.answer("Что выбираете ?", reply_markup=kb_client)
 
 
