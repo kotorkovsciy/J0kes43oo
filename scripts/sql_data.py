@@ -1,31 +1,38 @@
-from os import getenv, system
+from os import getenv
 from dotenv import load_dotenv
 from psycopg2 import connect
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from psycopg2.extras import RealDictCursor
+from psycopg2.errors import UndefinedTable
 
 
 load_dotenv()
 
 
 class PostDatabase:
+    __user = None
+    __host = None
+    __password = None
+    __port = None
+    __connection = None
+
     def __init__(self, database):
-        self.user = getenv("POSTGRES_USER")
-        self.host = getenv("POSTGRES_HOST")
-        self.password = getenv("POSTGRES_PASSWORD")
-        self.port = getenv("POSTGRES_PORT")
-        self.database = database
+        self.__user = getenv("POSTGRES_USER")
+        self.__host = getenv("POSTGRES_HOST")
+        self.__password = getenv("POSTGRES_PASSWORD")
+        self.__port = getenv("POSTGRES_PORT")
+        self.database = database.lower()
 
     def __open__(self):
-        self.connection = connect(user=self.user,
-                                  password=self.password,
-                                  host=self.host,
-                                  port=self.port)
-        self.connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-        self.cursor = self.connection.cursor(cursor_factory=RealDictCursor)
+        self.__connection = connect(user=self.__user,
+                                    password=self.__password,
+                                    host=self.__host,
+                                    port=self.__port)
+        self.__connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+        self.cursor = self.__connection.cursor(cursor_factory=RealDictCursor)
 
     def __close__(self):
-        self.connection.close()
+        self.__connection.close()
 
 
 class Database(PostDatabase):
@@ -149,6 +156,14 @@ class NotificationsDatabase(Database):
                             )""")
         self.__close__()
 
+    def __del__(self):
+        self.__open__()
+        try:
+            self.cursor.execute("DELETE FROM newJokes")
+        except UndefinedTable:
+            raise Exception("Таблицы newJokes не существует")
+        self.__close__()
+
     async def newsJokesExists(self):
         """Проверка шуток"""
         self.__open__()
@@ -216,14 +231,20 @@ class AdminDatabase(Database):
     async def dump(self, user_id):
         """Дамп бд"""
         self.__open__()
-        with open(f"{user_id}.sql", "w", encoding='utf 8') as file:
-            self.cursor.execute("SELECT datname FROM pg_database;")
-            rows = self.cursor.fetchall()
-            for i in range(len(rows)):
-                mydbname = rows[i]
-                dbname = mydbname[0]
-                system("backup.sh " + dbname)
-                print(dbname)
+        self.cursor.execute('SELECT * FROM users')
+        with open(f"sql\dump_users_{user_id}.sql", "w", encoding='utf 8') as file:
+            for row in self.cursor:
+                file.write("INSERT INTO users VALUES (" + str(row) + ");")
+
+        self.cursor.execute('SELECT * FROM jokes')
+        with open(f"sql\dump_jokes_{user_id}.sql", "w", encoding='utf 8') as file:
+            for row in self.cursor:
+                file.write("INSERT INTO jokes VALUES (" + str(row) + ");")
+
+        self.cursor.execute('SELECT * FROM admins')
+        with open(f"sql\dump_admins_{user_id}.sql", "w", encoding='utf 8') as file:
+            for row in self.cursor:
+                file.write("INSERT INTO admins VALUES (" + str(row) + ");")
         self.__close__()
 
     async def adminExists(self, user_id):
@@ -271,15 +292,3 @@ class AdminDatabase(Database):
         if not bool(len(msg)):
             return "Нету админов"
         return msg
-
-    async def clearDatabase(self):
-        self.__open__()
-        self.cursor.execute(
-            f"DROP TABLE users")
-        self.cursor.execute(
-            f"DROP TABLE admins")
-        self.cursor.execute(
-            f"DROP TABLE jokes")
-        self.cursor.execute(
-            f"DROP TABLE newJokes")
-        self.__close__()
