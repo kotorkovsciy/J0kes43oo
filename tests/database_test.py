@@ -1,53 +1,67 @@
 from unittest import IsolatedAsyncioTestCase
-from scripts import Database, AdminDatabase, NotificationsDatabase, JokesDatabase
+from scripts import AdminDatabase, NotificationsDatabase, JokesDatabase
+
+
+class Testing(AdminDatabase, NotificationsDatabase, JokesDatabase):
+    def __init__(self, database):
+        super(Testing, self).__init__(database)
+
+    async def clearDatabase(self):
+        """Полная очистка бд"""
+        self.__open__()
+        self.cursor.execute(
+            f"DROP TABLE users")
+        self.cursor.execute(
+            f"DROP TABLE admins")
+        self.cursor.execute(
+            f"DROP TABLE jokes")
+        self.__close__()
 
 
 class TestDatabase(IsolatedAsyncioTestCase):
     """
     Warning, when testing the database, a complete check is performed
     """
+
     def setUp(self):
-        self.Database = Database("test")
-        self.AdminDatabase = AdminDatabase("test")
-        self.NotificationsDatabase = NotificationsDatabase("test")
-        self.JokesDatabase = JokesDatabase("test")
+        self.Testing = Testing("test")
 
     async def test_ReadWriteJokesDatabase(self):
-        await self.AdminDatabase.deleteJokes()
-        await self.JokesDatabase.recordJoke("Meow", "Cat", 1)
-        self.assertEqual(await self.JokesDatabase.randomJoke(), 'Meow Автор: Cat')
-        self.assertEqual(await self.JokesDatabase.myJoke(1), 'Meow\n\n')
-        self.assertEqual(await self.JokesDatabase.quantityJokesUser(1), 1)
-        await self.JokesDatabase.deleteJokesUser(1)
-        self.assertEqual(await self.JokesDatabase.quantityJokesUser(1), 0)
-        await self.AdminDatabase.clearDatabase()
+        await self.Testing.deleteJokes()
+        await self.Testing.recordJoke("Meow", "Cat", 1)
+        self.assertEqual(await self.Testing.randomJoke(), 'Meow Автор: Cat')
+        self.assertEqual(await self.Testing.myJoke(1), 'Meow\n\n')
+        self.assertEqual(await self.Testing.quantityJokesUser(1), 1)
+        await self.Testing.deleteJokesUser(1)
+        self.assertEqual(await self.Testing.quantityJokesUser(1), 0)
+        await self.Testing.clearDatabase()
 
     async def test_ReadWriteNotificationsDatabase(self):
-        await self.AdminDatabase.deleteJokes()
-        self.assertEqual(await self.NotificationsDatabase.newsJokesExists(), 0)
-        await self.JokesDatabase.recordJoke("Meow", "Cat", 1)
-        self.assertEqual(await self.NotificationsDatabase.newsJokesExists(), 1)
-        self.assertEqual(await self.NotificationsDatabase.quantityUsers(), 1)
-        row = await self.NotificationsDatabase.newsJoke()
+        await self.Testing.deleteJokes()
+        self.assertEqual(await self.Testing.newsJokesExists(), 0)
+        await self.Testing.recordJoke("Meow", "Cat", 1)
+        self.assertEqual(await self.Testing.newsJokesExists(), 1)
+        self.assertEqual(await self.Testing.quantityUsers(), 1)
+        row = await self.Testing.newsJoke()
         self.assertEqual(row["user_id"], 1)
         self.assertEqual(row["joke"], "Meow")
         self.assertEqual(row["author"], "Cat")
-        self.assertEqual(await self.NotificationsDatabase.infoId(1), 1)
-        await self.NotificationsDatabase.deleteOldJoke()
-        self.assertEqual(await self.NotificationsDatabase.newsJokesExists(), 0)
-        await self.AdminDatabase.clearDatabase()
+        self.assertEqual(await self.Testing.infoId(1), 1)
+        await self.Testing.deleteOldJoke()
+        self.assertEqual(await self.Testing.newsJokesExists(), 0)
+        await self.Testing.clearDatabase()
 
     async def test_ReadWriteAdminDatabase(self):
-        await self.JokesDatabase.recordJoke("Meow", "Cat", 1)
-        await self.AdminDatabase.deleteJokes()
-        self.assertEqual(await self.JokesDatabase.quantityJokesUser(1), 0)
-        self.assertEqual(await self.NotificationsDatabase.newsJokesExists(), 0)
-        self.assertEqual(await self.AdminDatabase.adminExists(1), 0)
-        self.assertEqual(await self.AdminDatabase.nameAdminExists("Cat"), 0)
-        await self.AdminDatabase.adminAdd(1, "Cat", 1)
-        self.assertEqual(await self.AdminDatabase.nameAdminExists("Cat"), 1)
-        self.assertEqual(await self.AdminDatabase.allAdmins(), "id: 1, name: Cat, inviting: 1\n\n")
-        await self.AdminDatabase.adminDel(1)
-        self.assertEqual(await self.AdminDatabase.adminExists(1), 0)
-        self.assertEqual(await self.AdminDatabase.allAdmins(), "Нету админов")
-        await self.AdminDatabase.clearDatabase()
+        await self.Testing.recordJoke("Meow", "Cat", 1)
+        await self.Testing.deleteJokes()
+        self.assertEqual(await self.Testing.quantityJokesUser(1), 0)
+        self.assertEqual(await self.Testing.newsJokesExists(), 0)
+        self.assertEqual(await self.Testing.adminExists(1), 0)
+        self.assertEqual(await self.Testing.nameAdminExists("Cat"), 0)
+        await self.Testing.adminAdd(1, "Cat", 1)
+        self.assertEqual(await self.Testing.nameAdminExists("Cat"), 1)
+        self.assertEqual(await self.Testing.allAdmins(), "id: 1, name: Cat, inviting: 1\n\n")
+        await self.Testing.adminDel(1)
+        self.assertEqual(await self.Testing.adminExists(1), 0)
+        self.assertEqual(await self.Testing.allAdmins(), "Нету админов")
+        await self.Testing.clearDatabase()
