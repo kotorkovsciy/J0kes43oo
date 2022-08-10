@@ -1,4 +1,5 @@
-from os import getenv
+from os import getenv, mkdir
+from os.path import exists
 from dotenv import load_dotenv
 from psycopg2 import connect
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
@@ -230,6 +231,8 @@ class AdminDatabase(Database):
 
     async def dump(self, user_id):
         """Дамп бд"""
+        if not exists("sql/"):
+            mkdir("sql/")
         self.__open__()
         self.cursor.execute('SELECT * FROM users')
         with open(f"sql\dump_users_{user_id}.sql", "w", encoding='utf 8') as file:
