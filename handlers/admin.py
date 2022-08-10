@@ -2,8 +2,9 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
+from aiogram.utils.exceptions import BadRequest
 from create_bot import adm_sql
-from os import getenv
+from os import getenv, remove
 from keyboards import kb_admin, kb_aon, kb_record
 
 
@@ -105,6 +106,31 @@ async def res_del_admin(message: types.Message, state: FSMContext):
     await state.finish()
 
 
+async def sql_damp(message: types.Message):
+    if message.chat.type == 'private':
+        user_id = message.from_user.id
+        if int(getenv("ID_ADMIN")) == user_id or await adm_sql.adminExists(user_id):
+            await adm_sql.dump(user_id)
+            try:
+                file = open(f"sql\dump_users_{user_id}.sql", 'rb')
+                await message.answer_document(file, caption="sql dump users")
+            except BadRequest:
+                await message.answer("Пока что дамп бд users не возможен", reply_markup=kb_admin)
+            try:
+                file = open(f"sql\dump_jokes_{user_id}.sql", 'rb')
+                await message.answer_document(file, caption="sql dump jokes")
+            except BadRequest:
+                await message.answer("Пока что дамп бд jokes не возможен", reply_markup=kb_admin)
+            try:
+                file = open(f"sql\dump_admins_{user_id}.sql", 'rb')
+                await message.answer_document(file, caption="sql dump admins")
+            except BadRequest:
+                await message.answer("Пока что дамп бд admins не возможен", reply_markup=kb_admin)
+            remove(f"sql\dump_users_{user_id}.sql")
+            remove(f"sql\dump_jokes_{user_id}.sql")
+            remove(f"sql\dump_admins_{user_id}.sql")
+
+
 async def all_admins(message: types.Message):
     if message.chat.type == 'private':
         user_id = message.from_user.id
@@ -128,5 +154,7 @@ def register_handlers_admin(dp: Dispatcher):
         equals="Удалить админа"), state="*")
     dp.register_message_handler(
         res_del_admin, state=DelAdmin.user_id, content_types=types.ContentTypes.TEXT)
+    dp.register_message_handler(sql_damp, Text(
+        equals="Дамп бд"))
     dp.register_message_handler(all_admins, Text(
         equals="Список админов"))
