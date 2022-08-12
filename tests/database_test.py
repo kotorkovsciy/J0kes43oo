@@ -8,14 +8,14 @@ class Testing(AdminDatabase, NotificationsDatabase, JokesDatabase):
 
     async def clearDatabase(self):
         """Полная очистка бд"""
-        self.__open__()
-        self.cursor.execute(
+        self._open()
+        self._cursor.execute(
             f"DROP TABLE users")
-        self.cursor.execute(
+        self._cursor.execute(
             f"DROP TABLE admins")
-        self.cursor.execute(
+        self._cursor.execute(
             f"DROP TABLE jokes")
-        self.__close__()
+        self._close()
 
 
 class TestDatabase(IsolatedAsyncioTestCase):
