@@ -46,7 +46,7 @@ class Database(PostDatabase):
             f"SELECT 1 FROM pg_catalog.pg_database WHERE datname = '{self._database}'")
         exists = self._cursor.fetchone()
         if not exists:
-            self._cursor.execute(f'CREATE _database {self._database}')
+            self._cursor.execute(f'CREATE database {self._database}')
         self._cursor.execute("""CREATE TABLE IF NOT EXISTS users (
                                 id BIGSERIAL NOT NULL PRIMARY KEY,
                                 user_id BIGINT NOT NULL
