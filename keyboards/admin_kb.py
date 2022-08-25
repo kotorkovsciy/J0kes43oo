@@ -1,11 +1,11 @@
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 
-kb0 = KeyboardButton('Очистка бд')
-kb1 = KeyboardButton('Дамп бд')
-kb2 = KeyboardButton('Добавить админа')
-kb3 = KeyboardButton('Удалить админа')
-kb4 = KeyboardButton('Список админов')
-kb5 = KeyboardButton('В главное меню')
+kb0 = KeyboardButton("Очистка бд")
+kb1 = KeyboardButton("Дамп бд")
+kb2 = KeyboardButton("Добавить админа")
+kb3 = KeyboardButton("Удалить админа")
+kb4 = KeyboardButton("Список админов")
+kb5 = KeyboardButton("В главное меню")
 
 
 kb_admin = ReplyKeyboardMarkup(resize_keyboard=True)

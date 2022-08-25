@@ -8,7 +8,10 @@ async def scheduled(self):
         if await notific.newsJokesExists():
             row = await notific.newsJoke()
             for i in range(await notific.quantityUsers()):
-                if row["user_id"] != i+1:
-                    userId = await notific.infoId(i+1)
-                    await bot.send_message(userId, f"Появилась новая шутка\n\n{row['joke']}\n\nАвтор: {row['author']}")
+                if row["user_id"] != i + 1:
+                    userId = await notific.infoId(i + 1)
+                    await bot.send_message(
+                        userId,
+                        f"Появилась новая шутка\n\n{row['joke']}\n\nАвтор: {row['author']}",
+                    )
             await notific.deleteOldJoke()

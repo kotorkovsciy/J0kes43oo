@@ -9,12 +9,9 @@ class Testing(AdminDatabase, NotificationsDatabase, JokesDatabase):
     async def clearDatabase(self):
         """Полная очистка бд"""
         self._open()
-        self._cursor.execute(
-            f"DROP TABLE users")
-        self._cursor.execute(
-            f"DROP TABLE admins")
-        self._cursor.execute(
-            f"DROP TABLE jokes")
+        self._cursor.execute(f"DROP TABLE users")
+        self._cursor.execute(f"DROP TABLE admins")
+        self._cursor.execute(f"DROP TABLE jokes")
         self._close()
 
 
@@ -29,8 +26,8 @@ class TestDatabase(IsolatedAsyncioTestCase):
     async def test_ReadWriteJokesDatabase(self):
         await self.Testing.deleteJokes()
         await self.Testing.recordJoke("Meow", "Cat", 1)
-        self.assertEqual(await self.Testing.randomJoke(), 'Meow Автор: Cat')
-        self.assertEqual(await self.Testing.myJoke(1), 'Meow\n\n')
+        self.assertEqual(await self.Testing.randomJoke(), "Meow Автор: Cat")
+        self.assertEqual(await self.Testing.myJoke(1), "Meow\n\n")
         self.assertEqual(await self.Testing.quantityJokesUser(1), 1)
         await self.Testing.deleteJokesUser(1)
         self.assertEqual(await self.Testing.quantityJokesUser(1), 0)
@@ -60,7 +57,9 @@ class TestDatabase(IsolatedAsyncioTestCase):
         self.assertEqual(await self.Testing.nameAdminExists("Cat"), 0)
         await self.Testing.adminAdd(1, "Cat", 1)
         self.assertEqual(await self.Testing.nameAdminExists("Cat"), 1)
-        self.assertEqual(await self.Testing.allAdmins(), "id: 1, name: Cat, inviting: 1\n\n")
+        self.assertEqual(
+            await self.Testing.allAdmins(), "id: 1, name: Cat, inviting: 1\n\n"
+        )
         await self.Testing.adminDel(1)
         self.assertEqual(await self.Testing.adminExists(1), 0)
         self.assertEqual(await self.Testing.allAdmins(), "Нету админов")

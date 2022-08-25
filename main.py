@@ -11,11 +11,12 @@ from scripts.notifications import scheduled
 async def on_startup(_):
     info("Бот вышел в онлайн")
 
+
 other.register_handlers_client(dp)
 client.register_handlers_client(dp)
 admin.register_handlers_admin(dp)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     loop = new_event_loop()
     set_event_loop(loop)
     loop.create_task(scheduled(60))

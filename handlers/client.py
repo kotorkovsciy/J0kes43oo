@@ -18,7 +18,7 @@ class ClientDelete(StatesGroup):
 
 
 async def cmd_start(message: types.Message):
-    if message.chat.type == 'private':
+    if message.chat.type == "private":
         await sql.userExists(message.from_user.id)
     await message.answer("Что выбираете ?", reply_markup=kb_client)
 
@@ -55,43 +55,47 @@ async def joke_step(message: types.Message, state: FSMContext):
     quantity = await jokes.quantityJokesUser(message.from_user.id)
     await state.update_data(quantity=quantity)
     if quantity < 10:
-        await message.answer('Напиши шутку', reply_markup=kb_record)
+        await message.answer("Напиши шутку", reply_markup=kb_record)
         await ClientRecord.joke.set()
     else:
         await state.finish()
-        await message.answer(f'Превышен лимит шуток {quantity}/10', reply_markup=kb_client)
+        await message.answer(
+            f"Превышен лимит шуток {quantity}/10", reply_markup=kb_client
+        )
 
 
 async def author_step(message: types.Message, state: FSMContext):
     await state.update_data(joke=message.text)
-    await message.answer('Введите автора', reply_markup=kb_record)
+    await message.answer("Введите автора", reply_markup=kb_record)
     await ClientRecord.author.set()
 
 
 async def res_step(message: types.Message, state: FSMContext):
     await state.update_data(author=message.text)
     user_data = await state.get_data()
-    await jokes.recordJoke(user_data['joke'], user_data['author'], message.from_user.id)
-    await message.answer(f"Записано {user_data['quantity']+1}/10", reply_markup=kb_client)
+    await jokes.recordJoke(user_data["joke"], user_data["author"], message.from_user.id)
+    await message.answer(
+        f"Записано {user_data['quantity']+1}/10", reply_markup=kb_client
+    )
     await state.finish()
 
 
 def register_handlers_client(dp: Dispatcher):
     dp.register_message_handler(cmd_start, commands="start")
-    dp.register_message_handler(cmd_start, Text(
-        equals="В главное меню"))
-    dp.register_message_handler(random_bot_joke, Text(
-        equals="Шутку пользователей бота"))
-    dp.register_message_handler(random_joke, Text(
-        equals="Шутку рандомную из инета"))
+    dp.register_message_handler(cmd_start, Text(equals="В главное меню"))
+    dp.register_message_handler(
+        random_bot_joke, Text(equals="Шутку пользователей бота")
+    )
+    dp.register_message_handler(random_joke, Text(equals="Шутку рандомную из инета"))
     dp.register_message_handler(my_joke, Text(equals="Мои шутки"))
-    dp.register_message_handler(delet_step, Text(
-        equals="Удалить мои Шутки"), state="*")
-    dp.register_message_handler(delete_res, Text(
-        equals='Подтверждаю'), state=ClientDelete.aon)
-    dp.register_message_handler(joke_step, Text(
-        equals="Записать шутку"), state="*")
+    dp.register_message_handler(delet_step, Text(equals="Удалить мои Шутки"), state="*")
     dp.register_message_handler(
-        author_step, state=ClientRecord.joke, content_types=types.ContentTypes.TEXT)
+        delete_res, Text(equals="Подтверждаю"), state=ClientDelete.aon
+    )
+    dp.register_message_handler(joke_step, Text(equals="Записать шутку"), state="*")
     dp.register_message_handler(
-        res_step, state=ClientRecord.author, content_types=types.ContentTypes.TEXT)
+        author_step, state=ClientRecord.joke, content_types=types.ContentTypes.TEXT
+    )
+    dp.register_message_handler(
+        res_step, state=ClientRecord.author, content_types=types.ContentTypes.TEXT
+    )

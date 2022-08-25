@@ -1,8 +1,7 @@
-
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 
-kb5 = KeyboardButton('Отмена')
-kb6 = KeyboardButton('Подтверждаю')
+kb5 = KeyboardButton("Отмена")
+kb6 = KeyboardButton("Подтверждаю")
 
 
 kb_record = ReplyKeyboardMarkup(resize_keyboard=True)

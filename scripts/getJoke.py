@@ -15,13 +15,13 @@ class getAnekdot:
     async def Anekdot1(self):
         translator = Translator()
         joke = get_joke()
-        result = translator.translate(str(joke), dest='ru')
+        result = translator.translate(str(joke), dest="ru")
         return result.text
 
     async def Anekdot2(self):
         async with ClientSession(trust_env=True) as session:
-            async with session.get('http://anecdotica.ru/', ssl=False) as response:
+            async with session.get("http://anecdotica.ru/", ssl=False) as response:
                 html = await response.text()
-                soup = BeautifulSoup(html, 'lxml')
-                result = soup.find_all('div', class_='item_text')[0]
+                soup = BeautifulSoup(html, "lxml")
+                result = soup.find_all("div", class_="item_text")[0]
                 return result.text
