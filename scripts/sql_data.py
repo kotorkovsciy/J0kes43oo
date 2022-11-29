@@ -45,11 +45,11 @@ class Database(PostDatabase):
         super(Database, self).__init__(database)
         self._open()
         self._cursor.execute(
-            f"SELECT 1 FROM pg_catalog.pg_database WHERE datname = '{self._database}'"
+            "SELECT 1 FROM pg_catalog.pg_database WHERE datname = '%s'" % database
         )
         exists = self._cursor.fetchone()
         if not exists:
-            self._cursor.execute(f"CREATE database {self._database}")
+            self._cursor.execute("CREATE database %s" % database)
         self._cursor.execute(
             """CREATE TABLE IF NOT EXISTS users (
                                 id BIGSERIAL NOT NULL PRIMARY KEY,
@@ -61,7 +61,7 @@ class Database(PostDatabase):
     async def userExists(self, user_id):
         """Проверка пользовотеля"""
         self._open()
-        self._cursor.execute(f"SELECT * FROM users WHERE user_id = {user_id}")
+        self._cursor.execute("SELECT * FROM users WHERE user_id = %d" % user_id)
         result = self._cursor.fetchmany(1)
         self._close()
         if not bool(len(result)):
@@ -70,7 +70,7 @@ class Database(PostDatabase):
     async def userAdd(self, user_id):
         """Добавление пользователя"""
         self._open()
-        self._cursor.execute(f"INSERT INTO users (user_id) VALUES ({user_id})")
+        self._cursor.execute("INSERT INTO users (user_id) VALUES (%d)" % user_id)
         self._close()
 
     async def rowid(self, user_id):
@@ -78,7 +78,7 @@ class Database(PostDatabase):
         await self.userExists(user_id)
         self._open()
         self._cursor.execute(
-            f"SELECT row_number() over()  FROM users WHERE user_id = {user_id}"
+            "SELECT row_number() over()  FROM users WHERE user_id = %d" % user_id
         )
         result = self._cursor.fetchone()["row_number"]
         self._close()
@@ -103,10 +103,10 @@ class JokesDatabase(Database):
         rowid = await self.rowid(user_id)
         self._open()
         self._cursor.execute(
-            f"INSERT INTO jokes (user_id,joke,author) VALUES ({rowid}, '{joke}', '{author}')"
+            "INSERT INTO jokes (user_id, joke, author) VALUES (%d, '%s', '%s')" % (rowid, joke, author)
         )
         self._cursor.execute(
-            f"INSERT INTO newJokes (user_id,joke,author) VALUES ({rowid}, '{joke}', '{author}')"
+            "INSERT INTO newJokes (user_id, joke, author) VALUES (%d, '%s', '%s')" % (rowid, joke, author)
         )
         self._close()
 
@@ -126,7 +126,7 @@ class JokesDatabase(Database):
         rowid = await self.rowid(user_id)
         self._open()
         self._cursor.execute(
-            f"SELECT joke, author FROM jokes WHERE user_id = '%s'" % rowid
+            "SELECT joke, author FROM jokes WHERE user_id = '%s'" % rowid
         )
         records = self._cursor.fetchall()
         self._close()
@@ -141,7 +141,7 @@ class JokesDatabase(Database):
         """Количество шуток у пользователя"""
         rowid = await self.rowid(user_id)
         self._open()
-        self._cursor.execute(f"SELECT COUNT(*) FROM jokes WHERE user_id = '%s'" % rowid)
+        self._cursor.execute("SELECT COUNT(*) FROM jokes WHERE user_id = '%s'" % rowid)
         result = self._cursor.fetchone()["count"]
         self._close()
         return result
@@ -150,7 +150,7 @@ class JokesDatabase(Database):
         """Удаление своих шуток"""
         rowid = await self.rowid(user_id)
         self._open()
-        self._cursor.execute(f"DELETE FROM jokes WHERE user_id = '%s'" % rowid)
+        self._cursor.execute("DELETE FROM jokes WHERE user_id = '%s'" % rowid)
         self._close()
 
 
@@ -205,7 +205,7 @@ class NotificationsDatabase(Database):
     async def infoId(self, id):
         """Просмотр пользователя"""
         self._open()
-        self._cursor.execute(f"SELECT * FROM users WHERE id = {id}")
+        self._cursor.execute("SELECT * FROM users WHERE id = %d" % id)
         result = self._cursor.fetchone()["user_id"]
         self._close()
         return result
@@ -263,7 +263,7 @@ class AdminDatabase(Database):
     async def adminExists(self, user_id):
         """Проверка админа"""
         self._open()
-        self._cursor.execute(f"SELECT * FROM admins WHERE user_id = {user_id}")
+        self._cursor.execute("SELECT * FROM admins WHERE user_id = %d" % user_id)
         result = self._cursor.fetchmany(1)
         self._close()
         return bool(len(result))
@@ -271,7 +271,7 @@ class AdminDatabase(Database):
     async def nameAdminExists(self, name):
         """Проверка имени админа"""
         self._open()
-        self._cursor.execute(f"SELECT * FROM admins WHERE name = '{name}'")
+        self._cursor.execute("SELECT * FROM admins WHERE name = '%s'" % name)
         result = self._cursor.fetchmany(1)
         self._close()
         return bool(len(result))
@@ -280,14 +280,14 @@ class AdminDatabase(Database):
         """Добавление админа"""
         self._open()
         self._cursor.execute(
-            f"INSERT INTO admins (user_id, name, inviting) VALUES ({user_id}, '{name}', {inviting})"
+            "INSERT INTO admins (user_id, name, inviting) VALUES (%d, '%s', %d)" % (user_id, name, inviting)
         )
         self._close()
 
     async def adminDel(self, user_id):
         """Удаление админа"""
         self._open()
-        self._cursor.execute(f"DELETE FROM admins WHERE user_id = '%s'" % user_id)
+        self._cursor.execute("DELETE FROM admins WHERE user_id = '%s'" % user_id)
         self._close()
 
     async def allAdmins(self):
