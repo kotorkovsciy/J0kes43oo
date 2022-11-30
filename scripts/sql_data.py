@@ -130,11 +130,9 @@ class JokesDatabase(Database):
         )
         records = self._cursor.fetchall()
         self._close()
-        msg = ""
         if not bool(len(records)):
             return "Нету шуток 😞, но ты можешь записать свою шутку 😉"
-        for row in records:
-            msg += f'{row["joke"]}\n\n'
+        msg = "".join(["%s\n\n" % row["joke"] for row in records])
         return msg
 
     async def quantityJokesUser(self, user_id):
