@@ -24,21 +24,43 @@ class DelAdmin(StatesGroup):
     user_id = State()
 
 
+class IsAdmin:
+    def __init__(self, user_id):
+        self.__setid__(user_id)
+
+    @classmethod
+    def __setid__(cls, user_id):
+        cls.user_id = user_id
+
+    @classmethod
+    async def is_admin(cls):
+        if int(getenv("ID_ADMIN")) == cls.user_id or await adm_sql.adminExists(cls.user_id):
+            return True
+        else:
+            return False
+
+    @classmethod
+    async def prv_is_admin(cls, chat_type):
+        if chat_type == "private":
+            if int(getenv("ID_ADMIN")) == cls.user_id or await adm_sql.adminExists(cls.user_id):
+                return True
+            else:
+                return False
+        else:
+            return False
+
+
 async def cmd_start_adm(message: types.Message):
-    if message.chat.type == "private":
-        user_id = message.from_user.id
-        if int(getenv("ID_ADMIN")) == user_id or await adm_sql.adminExists(user_id):
-            await message.answer("Вы в админской", reply_markup=kb_admin)
+    if await IsAdmin(message.from_user.id).prv_is_admin(message.chat.type):
+        await message.answer("Вы в админской", reply_markup=kb_admin)
 
 
 async def step_clear_database(message: types.Message, state: FSMContext):
-    if message.chat.type == "private":
-        user_id = message.from_user.id
-        if int(getenv("ID_ADMIN")) == user_id or await adm_sql.adminExists(user_id):
-            await AdminDelete.user_id.set()
-            await state.update_data(user_id=user_id)
-            await message.answer("Вы уверены ?", reply_markup=kb_aon)
-            await AdminDelete.aon.set()
+    if await IsAdmin(message.from_user.id).prv_is_admin(message.chat.type):
+        await AdminDelete.user_id.set()
+        await state.update_data(user_id=message.from_user.id)
+        await message.answer("Вы уверены ?", reply_markup=kb_aon)
+        await AdminDelete.aon.set()
 
 
 async def res_clear_database(message: types.Message, state: FSMContext):
@@ -48,15 +70,13 @@ async def res_clear_database(message: types.Message, state: FSMContext):
 
 
 async def step_add_admin(message: types.Message, state: FSMContext):
-    if message.chat.type == "private":
-        user_id = message.from_user.id
-        if int(getenv("ID_ADMIN")) == user_id or await adm_sql.adminExists(user_id):
-            await AddAdmin.inviting.set()
-            await state.update_data(inviting=user_id)
-            await message.answer(
-                "Введите имя добавляемого админа", reply_markup=kb_record
-            )
-            await AddAdmin.name.set()
+    if await IsAdmin(message.from_user.id).prv_is_admin(message.chat.type):
+        await AddAdmin.inviting.set()
+        await state.update_data(inviting=message.from_user.id)
+        await message.answer(
+          "Введите имя добавляемого админа", reply_markup=kb_record
+        )
+        await AddAdmin.name.set()
 
 
 async def step_name_admin(message: types.Message, state: FSMContext):
@@ -88,13 +108,11 @@ async def res_add_admin(message: types.Message, state: FSMContext):
 
 
 async def step_del_admin(message: types.Message, state: FSMContext):
-    if message.chat.type == "private":
-        user_id = message.from_user.id
-        if int(getenv("ID_ADMIN")) == user_id or await adm_sql.adminExists(user_id):
-            await DelAdmin.responsible.set()
-            await state.update_data(responsible=user_id)
-            await message.answer("Введите id удаляемого админа", reply_markup=kb_record)
-            await DelAdmin.user_id.set()
+    if await IsAdmin(message.from_user.id).prv_is_admin(message.chat.type):
+        await DelAdmin.responsible.set()
+        await state.update_data(responsible=message.from_user.id)
+        await message.answer("Введите id удаляемого админа", reply_markup=kb_record)
+        await DelAdmin.user_id.set()
 
 
 async def res_del_admin(message: types.Message, state: FSMContext):
@@ -113,41 +131,38 @@ async def res_del_admin(message: types.Message, state: FSMContext):
 
 
 async def sql_damp(message: types.Message):
-    if message.chat.type == "private":
+    if await IsAdmin(message.from_user.id).prv_is_admin(message.chat.type):
         user_id = message.from_user.id
-        if int(getenv("ID_ADMIN")) == user_id or await adm_sql.adminExists(user_id):
-            await adm_sql.dump(user_id)
-            try:
-                file = open(f"sql\dump_users_{user_id}.sql", "rb")
-                await message.answer_document(file, caption="sql dump users")
-            except BadRequest:
-                await message.answer(
-                    "Пока что дамп бд users не возможен", reply_markup=kb_admin
-                )
-            try:
-                file = open(f"sql\dump_jokes_{user_id}.sql", "rb")
-                await message.answer_document(file, caption="sql dump jokes")
-            except BadRequest:
-                await message.answer(
-                    "Пока что дамп бд jokes не возможен", reply_markup=kb_admin
-                )
-            try:
-                file = open(f"sql\dump_admins_{user_id}.sql", "rb")
-                await message.answer_document(file, caption="sql dump admins")
-            except BadRequest:
-                await message.answer(
-                    "Пока что дамп бд admins не возможен", reply_markup=kb_admin
-                )
-            remove(f"sql\dump_users_{user_id}.sql")
-            remove(f"sql\dump_jokes_{user_id}.sql")
-            remove(f"sql\dump_admins_{user_id}.sql")
+        await adm_sql.dump(user_id)
+        try:
+            file = open(f"sql\dump_users_{user_id}.sql", "rb")
+            await message.answer_document(file, caption="sql dump users")
+        except BadRequest:
+            await message.answer(
+                "Пока что дамп бд users не возможен", reply_markup=kb_admin
+            )
+        try:
+            file = open(f"sql\dump_jokes_{user_id}.sql", "rb")
+            await message.answer_document(file, caption="sql dump jokes")
+        except BadRequest:
+            await message.answer(
+                "Пока что дамп бд jokes не возможен", reply_markup=kb_admin
+            )
+        try:
+            file = open(f"sql\dump_admins_{user_id}.sql", "rb")
+            await message.answer_document(file, caption="sql dump admins")
+        except BadRequest:
+            await message.answer(
+                "Пока что дамп бд admins не возможен", reply_markup=kb_admin
+            )
+        remove(f"sql\dump_users_{user_id}.sql")
+        remove(f"sql\dump_jokes_{user_id}.sql")
+        remove(f"sql\dump_admins_{user_id}.sql")
 
 
 async def all_admins(message: types.Message):
-    if message.chat.type == "private":
-        user_id = message.from_user.id
-        if int(getenv("ID_ADMIN")) == user_id or await adm_sql.adminExists(user_id):
-            await message.answer(await adm_sql.allAdmins())
+    if await IsAdmin(message.from_user.id).prv_is_admin(message.chat.type):
+        await message.answer(await adm_sql.allAdmins())
 
 
 def register_handlers_admin(dp: Dispatcher):

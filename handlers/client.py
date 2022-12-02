@@ -4,6 +4,7 @@ from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from create_bot import sql, Anekdot, jokes
 from keyboards import kb_client, kb_record, kb_aon
+from .admin import IsAdmin
 
 
 class ClientRecord(StatesGroup):
@@ -54,7 +55,7 @@ async def joke_step(message: types.Message, state: FSMContext):
     await ClientRecord.quantity.set()
     quantity = await jokes.quantityJokesUser(message.from_user.id)
     await state.update_data(quantity=quantity)
-    if quantity < 10:
+    if quantity < 10 or await IsAdmin(message.from_user.id).is_admin():
         await message.answer("Напиши шутку", reply_markup=kb_record)
         await ClientRecord.joke.set()
     else:
