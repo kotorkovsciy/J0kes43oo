@@ -293,9 +293,7 @@ class AdminDatabase(Database):
         self._open()
         self._cursor.execute(f"SELECT user_id, name, inviting FROM admins")
         records = self._cursor.fetchall()
-        msg = ""
-        for row in records:
-            msg += f'id: {row["user_id"]}, name: {row["name"]}, inviting: {row["inviting"]}\n\n'
+        msg = "".join(["id: %s, name: %s, inviting: %s\n\n" % (row["user_id"], row["name"], row["inviting"]) for row in records])
         self._close()
         if not bool(len(msg)):
             return "Нету админов"
