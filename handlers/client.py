@@ -74,8 +74,10 @@ async def res_step(message: types.Message, state: FSMContext):
     await state.update_data(author=message.text)
     user_data = await state.get_data()
     await jokes.recordJoke(user_data["joke"], user_data["author"], message.from_user.id)
+    await state.update_data(quantity = await jokes.quantityJokesUser(message.from_user.id))
+    user_data = await state.get_data()
     await message.answer(
-        f"Записано {user_data['quantity']+1}/10", reply_markup=kb_client
+        f"Записано {user_data['quantity']}/10", reply_markup=kb_client
     )
     await state.finish()
 
