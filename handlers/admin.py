@@ -26,11 +26,17 @@ class DelAdmin(StatesGroup):
 
 class IsAdmin:
     def __init__(self, user_id):
-        self.__setid__(user_id)
+        self.__set_id__(user_id)
 
     @classmethod
-    def __setid__(cls, user_id):
+    def __set_id__(cls, user_id):
         cls.user_id = user_id
+
+    @classmethod
+    def __get_id__(cls):
+        return cls.user_id
+
+    user_id = property(__get_id__, __set_id__)
 
     @classmethod
     async def is_admin(cls):
