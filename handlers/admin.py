@@ -26,29 +26,25 @@ class DelAdmin(StatesGroup):
 
 class IsAdmin:
     def __init__(self, user_id):
-        self.__set_id__(user_id)
+        self.__user_id = user_id
 
-    @classmethod
-    def __set_id__(cls, user_id):
-        cls.user_id = user_id
+    @property
+    def user_id(self):
+        return self.__user_id
 
-    @classmethod
-    def __get_id__(cls):
-        return cls.user_id
+    @user_id.setter
+    def user_id(self, user_id):
+        self.__user_id = user_id
 
-    user_id = property(__get_id__, __set_id__)
-
-    @classmethod
-    async def is_admin(cls):
-        if int(getenv("ID_ADMIN")) == cls.user_id or await adm_sql.adminExists(cls.user_id):
+    async def is_admin(self):
+        if int(getenv("ID_ADMIN")) == self.user_id or await adm_sql.adminExists(self.user_id):
             return True
         else:
             return False
 
-    @classmethod
-    async def prv_is_admin(cls, chat_type):
+    async def prv_is_admin(self, chat_type):
         if chat_type == "private":
-            if int(getenv("ID_ADMIN")) == cls.user_id or await adm_sql.adminExists(cls.user_id):
+            if int(getenv("ID_ADMIN")) == self.user_id or await adm_sql.adminExists(self.user_id):
                 return True
             else:
                 return False
